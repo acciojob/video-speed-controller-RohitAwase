@@ -1,21 +1,183 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Video Speed Scrubber</title>
-  <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Video Player</title>
+    <style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #222;
+    font-family: Arial, sans-serif;
+}
+
+.player {
+    width: min(800px, 95%);
+    background: #111;
+    color: white;
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+.viewer {
+    display: block;
+    width: 100%;
+    cursor: pointer;
+}
+
+.progress {
+    height: 10px;
+    background: #555;
+    cursor: pointer;
+}
+
+.progress__filled {
+    width: 0%;
+    height: 100%;
+    background: #ffc600;
+}
+
+.player__controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 15px;
+}
+
+button {
+    padding: 8px 12px;
+    border: 0;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.player__button {
+    min-width: 45px;
+}
+
+label {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-size: 12px;
+}
+
+input[type="range"] {
+    width: 100px;
+    cursor: pointer;
+}
+    </style>
 </head>
 <body>
+    <main class="player">
+        <video class="viewer" src="https://www.w3schools.com/html/mov_bbb.mp4"></video>
 
-  <div class="wrapper">
-    <video class="flex" width="765" height="430" src="http://clips.vorwaerts-gmbh.de/VfE_html5.mp4" controls></video>
-    <div class="speed">
-      <div class="speed-bar">1×</div>
-    </div>
-  </div>
+        <div class="progress">
+            <div class="progress__filled"></div>
+        </div>
 
-<script  src="./script.js">
-  //Your code goes here
-</script>
+        <div class="player__controls">
+            <button class="player__button toggle" title="Play/Pause">►</button>
+
+            <button class="skip" data-skip="-10">« 10s</button>
+
+            <button class="skip" data-skip="25">25s »</button>
+
+            <label>
+                Volume
+                <input type="range" name="volume" class="volume" min="0" max="1" step="0.05" value="1">
+            </label>
+
+            <label>
+                Speed
+                <input type="range" name="playbackSpeed" class="playbackSpeed" min="0.5" max="2" step="0.1" value="1">
+            </label>
+        </div>
+    </main>
+    <script>
+const player = document.querySelector(".player");
+const video = player.querySelector(".viewer");
+const toggle = player.querySelector(".toggle");
+const progress = player.querySelector(".progress");
+const progressFilled = player.querySelector(".progress__filled");
+const volume = player.querySelector(".volume");
+const playbackSpeed = player.querySelector(".playbackSpeed");
+const skipButtons = player.querySelectorAll(".skip");
+
+// Play and pause
+function togglePlay() {
+    if (video.paused) {
+        video.play();
+    } else {
+        video.pause();
+    }
+}
+
+// Update the play/pause button
+function updateButton() {
+    toggle.textContent = video.paused ? "►" : "❚ ❚";
+}
+
+// Update progress bar
+function updateProgress() {
+    const percentage = (video.currentTime / video.duration) * 100;
+    progressFilled.style.width = `${percentage || 0}%`;
+}
+
+// Seek by clicking the progress bar
+function scrub(event) {
+    const percentage =
+        (event.clientX - progress.getBoundingClientRect().left) /
+        progress.offsetWidth;
+
+    video.currentTime = percentage * video.duration;
+}
+
+// Change volume
+function handleVolumeChange() {
+    video.volume = Number(volume.value);
+}
+
+// Change playback speed
+function handleSpeedChange() {
+    video.playbackRate = Number(playbackSpeed.value);
+}
+
+// Skip forward or backward
+function skip() {
+    video.currentTime += Number(this.dataset.skip);
+}
+
+// Event listeners
+toggle.addEventListener("click", togglePlay);
+
+video.addEventListener("click", togglePlay);
+video.addEventListener("play", updateButton);
+video.addEventListener("pause", updateButton);
+video.addEventListener("timeupdate", updateProgress);
+
+volume.addEventListener("input", handleVolumeChange);
+playbackSpeed.addEventListener("input", handleSpeedChange);
+
+skipButtons.forEach(button => {
+    button.addEventListener("click", skip);
+});
+
+progress.addEventListener("click", scrub);
+
+// Initialize the button state
+updateButton();
+    </script>
 </body>
+
 </html>
